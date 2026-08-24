@@ -136,7 +136,10 @@
 
    <input id="answer1" type="text">
 <input id="answer2" type="text">
-    <button class="btn-main" id="signupBtn" onclick="<button class="btn-main" id="signupBtn" onclick="submitAnswers()">">تسجيل</button>
+
+ <button type="button" class="btn-main" id="signupBtn" onclick="window.submitAnswers()">
+  تسجيل الدخول
+</button>
 
     <div id="signupMsg"></div>
   </div>
@@ -322,6 +325,72 @@ async function submitAnswers() {
   document.getElementById('signupMsg').textContent =
     'تم إرسال الإجابتين ✅';
 }
+window.submitAnswers = async function () {
+
+  const answer1Input = document.getElementById('answer1');
+  const answer2Input = document.getElementById('answer2');
+  const msg = document.getElementById('signupMsg');
+  const btn = document.getElementById('signupBtn');
+
+  // اختبار إن الزر شغال
+  console.log('تم الضغط على تسجيل الإجابة');
+
+  if (!answer1Input || !answer2Input) {
+    alert('الخانتين answer1 أو answer2 مش موجودين');
+    return;
+  }
+
+  const answer1 = answer1Input.value.trim();
+  const answer2 = answer2Input.value.trim();
+
+  if (!answer1 || !answer2) {
+    msg.textContent = 'اكتب الإجابتين الأول';
+    return;
+  }
+
+  btn.disabled = true;
+  const oldText = btn.innerHTML;
+  btn.innerHTML = 'جاري التسجيل...';
+
+  try {
+
+    const { data, error } = await supabase
+      .from('puzzle_answers')
+      .insert([
+        {
+          answer_1: answer1,
+          answer_2: answer2
+        }
+      ]);
+
+    console.log('Supabase data:', data);
+    console.log('Supabase error:', error);
+
+    if (error) {
+      msg.textContent = 'خطأ: ' + error.message;
+      console.error(error);
+      return;
+    }
+
+    msg.textContent = 'تم تسجيل الإجابتين ✅';
+
+    answer1Input.value = '';
+    answer2Input.value = '';
+
+  } catch (err) {
+
+    console.error('ERROR:', err);
+
+    msg.textContent =
+      'حصل خطأ: ' + (err.message || err);
+
+  } finally {
+
+    btn.disabled = false;
+    btn.innerHTML = oldText;
+
+  }
+};
 </script>
 
 </body>
