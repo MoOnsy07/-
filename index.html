@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تسجيل الدخول</title>
+<title>سجل إجابتك</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -16,90 +16,77 @@
     justify-content: center;
     padding: 16px;
   }
-  .wrap { width: 100%; max-width: 350px; }
+  .wrap { width: 100%; max-width: 380px; }
   .card {
     background: #fff;
     border: 1px solid #dbdbdb;
-    border-radius: 8px;
-    padding: 36px 32px 20px;
+    border-radius: 10px;
+    padding: 34px 28px 24px;
     text-align: center;
   }
   .logo {
-    font-family: 'Brush Script MT', cursive, sans-serif;
-    font-size: 42px;
-    font-weight: 700;
-    background: linear-gradient(90deg,#f58529,#dd2a7b,#8134af,#515bd4);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 24px;
-    letter-spacing: -1px;
+    font-size: 34px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: #262626;
+  }
+  .subtitle {
+    font-size: 14px;
+    color: #737373;
+    line-height: 1.7;
+    margin-bottom: 22px;
   }
   .field {
     width: 100%;
-    padding: 10px 12px;
-    margin-bottom: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
     background: #fafafa;
     border: 1px solid #dbdbdb;
-    border-radius: 4px;
-    font-size: 13px;
+    border-radius: 6px;
+    font-size: 16px;
     text-align: right;
   }
-  .field:focus { outline: none; border-color: #a8a8a8; }
+  .field:focus {
+    outline: none;
+    border-color: #a8a8a8;
+  }
   .btn-main {
     width: 100%;
-    padding: 8px;
-    margin-top: 10px;
+    min-height: 44px;
+    padding: 10px;
+    margin-top: 4px;
     background: #0095f6;
     color: #fff;
     border: none;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 14px;
+    border-radius: 7px;
+    font-weight: 700;
+    font-size: 15px;
     cursor: pointer;
   }
-  .btn-main:disabled { opacity: .5; cursor: default; }
-  .divider {
-    display: flex;
-    align-items: center;
-    color: #8e8e8e;
-    font-size: 12px;
-    font-weight: 600;
-    margin: 18px 0;
+  .btn-main:disabled {
+    opacity: .55;
+    cursor: default;
   }
-  .divider::before, .divider::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: #dbdbdb;
-  }
-  .divider::before { margin-left: 12px; }
-  .divider::after { margin-right: 12px; }
   .msg {
     font-size: 13px;
-    margin-top: 12px;
-    padding: 8px;
-    border-radius: 4px;
+    line-height: 1.6;
+    margin-top: 14px;
+    padding: 10px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
   }
-  .msg.error { background: #fdecea; color: #d93025; }
-  .msg.success { background: #e6f4ea; color: #1e7e34; }
-  .switch-card {
-    background: #fff;
-    border: 1px solid #dbdbdb;
-    border-radius: 8px;
-    margin-top: 10px;
-    padding: 18px;
-    font-size: 14px;
-  }
-  .switch-card a { color: #0095f6; font-weight: 600; cursor: pointer; }
-  .hidden { display: none !important; }
+  .msg.error { background: #fdecea; color: #b42318; }
+  .msg.success { background: #e6f4ea; color: #176b36; }
   .spinner {
-    width: 14px; height: 14px;
+    width: 14px;
+    height: 14px;
     border: 2px solid rgba(255,255,255,.4);
     border-top-color: #fff;
     border-radius: 50%;
     display: inline-block;
     animation: spin .7s linear infinite;
     vertical-align: middle;
+    margin-left: 6px;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 </style>
@@ -107,164 +94,98 @@
 <body>
 
 <div class="wrap">
+  <div class="card">
+    <div class="logo">سجل إجابتك</div>
+    <div class="subtitle">اكتب إجابتي اللغز واضغط تسجيل الإجابة.</div>
 
-  <!-- كارت تسجيل الدخول -->
-  <div class="card" id="loginCard">
-    <div class="logo">سجل الدخول للحصول على انستجرام بريميوم مجاني</div>
+    <form id="answerForm">
+      <input id="answer1" class="field" type="text" placeholder="الإجابة الأولى" autocomplete="off">
+      <input id="answer2" class="field" type="text" placeholder="الإجابة الثانية" autocomplete="off">
 
-    <input type="text" id="loginEmail" class="field" placeholder="الإيميل">
-    <input type="password" id="loginPassword" class="field" placeholder="كلمة السر">
+      <button type="submit" class="btn-main" id="submitBtn">
+        تسجيل الإجابة
+      </button>
+    </form>
 
-    <button class="btn-main" id="loginBtn" onclick="handleLogin()">تسجيل الدخول</button>
-
-    <div id="loginMsg"></div>
-
-    <div class="divider">أو</div>
-    <div style="font-size:13px;color:#385185;font-weight:600;cursor:pointer" onclick="alert('لسه مش متاح')">نسيت كلمة السر؟</div>
+    <div id="answerMsg" aria-live="polite"></div>
   </div>
-
-  <div class="switch-card">
-    معندكش حساب؟ <a onclick="showSignup()">اعمل حساب جديد</a>
-  </div>
-
-  <!-- كارت التسجيل -->
-  <div class="card hidden" id="signupCard">
-    <div class="logo">سجل الدخول للحصول على انستجرام بريميوم مجاني</div>
-    <div style="font-size:17px;font-weight:600;color:#8e8e8e;margin-bottom:20px">
-      سجّل عشان تتابع أصحابك
-    </div>
-
-   <input id="answer1" type="text">
-<input id="answer2" type="text">
-
- <button type="button" class="btn-main" id="signupBtn" onclick="window.submitAnswers()">
-  تسجيل الإجابة
-</button>
-
-    <div id="signupMsg"></div>
-  </div>
-
-  <div class="switch-card hidden" id="backToLogin">
-    عندك حساب؟ <a onclick="showLogin()">سجّل دخول</a>
-  </div>
-
 </div>
 
 <script>
-  // ================== إعدادات Supabase ==================
-  // حط بيانات مشروعك هنا (من Supabase Dashboard > Settings > API)
   const SUPABASE_URL = "https://sqmhdpykntsxjlpdztms.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_2yaR2TFFO_hGQr8puC3ZJA_js9RzVHi";
+  const SUPABASE_KEY = "sb_publishable_2yaR2TFFO_hGQr8puC3ZJA_js9RzVHi";
 
-  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  // ================== تبديل بين الكاردين ==================
-  function showSignup() {
-    document.getElementById('loginCard').classList.add('hidden');
-    document.querySelector('.switch-card:not(.hidden)').classList.add('hidden');
-    document.getElementById('signupCard').classList.remove('hidden');
-    document.getElementById('backToLogin').classList.remove('hidden');
-  }
-  function showLogin() {
-    document.getElementById('signupCard').classList.add('hidden');
-    document.getElementById('backToLogin').classList.add('hidden');
-    document.getElementById('loginCard').classList.remove('hidden');
-    document.querySelectorAll('.switch-card')[0].classList.remove('hidden');
-  }
-
-  function showMsg(elId, text, type) {
-    const el = document.getElementById(elId);
-    el.innerHTML = `<div class="msg ${type}">${text}</div>`;
-  }
-
-  // ================== تسجيل الدخول ==================
-  async function handleLogin() {
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
-    const btn = document.getElementById('loginBtn');
-
-    if (!email || !password) {
-      showMsg('loginMsg', 'اكتب الإيميل وكلمة السر', 'error');
-      return;
-    }
-
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span>';
-
-    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-
-    btn.disabled = false;
-    btn.innerHTML = 'تسجيل الدخول';
-
-    if (error) {
-      showMsg('loginMsg', 'الإيميل أو كلمة السر غلط', 'error');
-      return;
-    }
-
-    showMsg('loginMsg', 'تم تسجيل الدخول، بتحول دلوقتي...', 'success');
-    // بعد الدخول، حوّل لصفحة الفيد (لما تتعمل)
-    // window.location.href = 'feed.html';
-  }
-
-  // ================== لو المستخدم داخل بالفعل ==================
-  (async () => {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (session) {
-      showMsg('loginMsg', 'انت مسجل دخول بالفعل (' + session.user.email + ')', 'success');
-    }
-  })();
-window.submitAnswers = async function () {
+  const answerForm = document.getElementById('answerForm');
   const answer1Input = document.getElementById('answer1');
   const answer2Input = document.getElementById('answer2');
-  const btn = document.getElementById('signupBtn');
+  const submitBtn = document.getElementById('submitBtn');
+  const answerMsg = document.getElementById('answerMsg');
 
-  if (!answer1Input || !answer2Input || !btn) {
-    console.error('عناصر نموذج الإجابة غير موجودة');
-    return;
+  let db = null;
+
+  function showMsg(text, type) {
+    answerMsg.innerHTML = `<div class="msg ${type}">${text}</div>`;
   }
-
-  const answer1 = answer1Input.value.trim();
-  const answer2 = answer2Input.value.trim();
-
-  if (!answer1 || !answer2) {
-    showMsg('signupMsg', 'اكتب الإجابتين الأول', 'error');
-    return;
-  }
-
-  const oldText = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> جاري التسجيل...';
 
   try {
-  const { error } = await supabaseClient
-  .from('puzzle_answers')
-  .insert({
-    answer_1: answer1,
-    answer_2: answer2
-  });
+    if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+      throw new Error('تعذر تحميل مكتبة Supabase');
+    }
 
-    if (error) {
-      console.error('Supabase error:', error);
-      showMsg('signupMsg', 'فشل التسجيل: ' + error.message, 'error');
+    db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  } catch (err) {
+    console.error('Supabase init error:', err);
+    showMsg('تعذر الاتصال بنظام تسجيل الإجابات. جرّب تحديث الصفحة.', 'error');
+    submitBtn.disabled = true;
+  }
+
+  answerForm.addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    const answer1 = answer1Input.value.trim();
+    const answer2 = answer2Input.value.trim();
+
+    if (!answer1 || !answer2) {
+      showMsg('اكتب الإجابتين الأول.', 'error');
       return;
     }
 
-    showMsg('signupMsg', 'تم تسجيل الإجابتين ✅', 'success');
-    answer1Input.value = '';
-    answer2Input.value = '';
+    if (!db) {
+      showMsg('الاتصال بقاعدة البيانات غير متاح حاليًا.', 'error');
+      return;
+    }
 
-  } catch (err) {
-    console.error('Unexpected error:', err);
-    showMsg(
-      'signupMsg',
-      'حصل خطأ غير متوقع: ' + (err?.message || err),
-      'error'
-    );
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = oldText;
-  }
-};
+    const oldButtonText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner"></span> جاري التسجيل...';
+
+    try {
+      const { error } = await db
+        .from('puzzle_answers')
+        .insert({
+          answer_1: answer1,
+          answer_2: answer2
+        });
+
+      if (error) {
+        console.error('Supabase insert error:', error);
+        showMsg('فشل تسجيل الإجابة: ' + error.message, 'error');
+        return;
+      }
+
+      showMsg('تم تسجيل الإجابتين بنجاح ✅', 'success');
+      answer1Input.value = '';
+      answer2Input.value = '';
+      answer1Input.focus();
+
+    } catch (err) {
+      console.error('Unexpected submit error:', err);
+      showMsg('حصل خطأ أثناء الإرسال: ' + (err.message || err), 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = oldButtonText;
+    }
+  });
 </script>
 
 </body>
