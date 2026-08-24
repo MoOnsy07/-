@@ -110,7 +110,7 @@
 
   <!-- كارت تسجيل الدخول -->
   <div class="card" id="loginCard">
-    <div class="logo">سجل دخولك لتحصل على انستجرام بريميوم لمدة شهر</div>
+    <div class="logo">سجل دخولك لتحصل على اشتراك بريميوم مجاني</div>
 
     <input type="text" id="loginEmail" class="field" placeholder="الإيميل">
     <input type="password" id="loginPassword" class="field" placeholder="كلمة السر">
@@ -129,17 +129,17 @@
 
   <!-- كارت التسجيل -->
   <div class="card hidden" id="signupCard">
-    <div class="logo">انستجرام</div>
+    <div class="logo">سجل دخولك لتحصل على اشتراك بريميوم مجاني</div>
     <div style="font-size:17px;font-weight:600;color:#8e8e8e;margin-bottom:20px">
       سجّل عشان تتابع أصحابك
     </div>
 
-   <input id="answer1" type="text">
-<input id="answer2" type="text">
+   <input id="answer1" type="text" class="field" placeholder="الإجابة الأولى" autocomplete="off">
+    <input id="answer2" type="text" class="field" placeholder="الإجابة الثانية" autocomplete="off">
 
  <button type="button" class="btn-main" id="signupBtn" onclick="window.submitAnswers()">
-  تسجيل الدخول
-</button>
+      تسجيل الإجابة
+    </button>
 
     <div id="signupMsg"></div>
   </div>
@@ -206,80 +206,8 @@
     // window.location.href = 'feed.html';
   }
 
-  // ================== إنشاء حساب ==================
-  async function handleSignup() {
-    const fullname = document.getElementById('signupFullname').value.trim();
-    const username = document.getElementById('signupUsername').value.trim().toLowerCase();
-    const email = document.getElementById('signupEmail').value.trim();
-    const password = document.getElementById('signupPassword').value;
-    const btn = document.getElementById('signupBtn');
-
-    if (!fullname || !username || !email || !password) {
-      showMsg('signupMsg', 'لازم تملى كل الخانات', 'error');
-      return;
-    }
-    if (password.length < 6) {
-      showMsg('signupMsg', 'كلمة السر لازم تكون 6 حروف على الأقل', 'error');
-      return;
-    }
-    if (!/^[a-z0-9_.]+$/.test(username)) {
-      showMsg('signupMsg', 'اسم المستخدم يكون بالإنجليزي وأرقام وشرطة سفلية بس', 'error');
-      return;
-    }
-
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span>';
-
-    // تأكد إن اليوزرنيم مش مكرر
-    const { data: existing } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('username', username)
-      .maybeSingle();
-
-    if (existing) {
-      btn.disabled = false;
-      btn.innerHTML = 'تسجيل';
-      showMsg('signupMsg', 'اسم المستخدم ده متحجز، جرّب اسم تاني', 'error');
-      return;
-    }
-
-    // إنشاء الحساب في Supabase Auth
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullname, username: username }
-      }
-    });
-
-    if (error) {
-      btn.disabled = false;
-      btn.innerHTML = 'تسجيل';
-      showMsg('signupMsg', 'حصل خطأ: ' + error.message, 'error');
-      return;
-    }
-
-    // إنشاء صف البروفايل المرتبط بالحساب
-    if (data.user) {
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: data.user.id,
-        username: username,
-        full_name: fullname
-      });
-
-      if (profileError) {
-        showMsg('signupMsg', 'اتعمل الحساب بس حصلت مشكلة في البروفايل: ' + profileError.message, 'error');
-        btn.disabled = false;
-        btn.innerHTML = 'تسجيل';
-        return;
-      }
-    }
-
-    btn.disabled = false;
-    btn.innerHTML = 'تسجيل';
-    showMsg('signupMsg', 'اتعمل الحساب بنجاح! ممكن دلوقتي تأكد الإيميل لو مطلوب وتسجل دخول.', 'success');
-  }
+  // كارت التسجيل في النسخة دي مستخدم لتسجيل إجابتي اللغز،
+  // لذلك تم حذف دالة إنشاء الحساب القديمة لأنها كانت تشير إلى حقول غير موجودة.
 
   // ================== لو المستخدم داخل بالفعل ==================
   (async () => {
@@ -288,55 +216,14 @@
       showMsg('loginMsg', 'انت مسجل دخول بالفعل (' + session.user.email + ')', 'success');
     }
   })();
-async function submitAnswers() {
-  const answer1 = document.getElementById('answer1').value.trim();
-  const answer2 = document.getElementById('answer2').value.trim();
-  const btn = document.getElementById('signupBtn');
-
-  if (!answer1 || !answer2) {
-    document.getElementById('signupMsg').textContent = 'اكتب الإجابتين الأول';
-    return;
-  }
-
-  const oldText = btn.innerHTML;
-
-  btn.disabled = true;
-  btn.innerHTML = 'جاري الإرسال...';
-
-  const { error } = await supabase
-    .from('puzzle_answers')
-    .insert([
-      {
-        answer_1: answer1,
-        answer_2: answer2
-      }
-    ]);
-
-  btn.disabled = false;
-  btn.innerHTML = oldText;
-
-  if (error) {
-    console.error(error);
-    document.getElementById('signupMsg').textContent =
-      'حصل خطأ أثناء الإرسال';
-    return;
-  }
-
-  document.getElementById('signupMsg').textContent =
-    'تم إرسال الإجابتين ✅';
-}
+// ================== تسجيل إجابتي اللغز ==================
 window.submitAnswers = async function () {
-
   const answer1Input = document.getElementById('answer1');
   const answer2Input = document.getElementById('answer2');
-  const msg = document.getElementById('signupMsg');
   const btn = document.getElementById('signupBtn');
 
-  // اختبار إن الزر شغال
-  console.log('تم الضغط على تسجيل الإجابة');
-
-  if (!answer1Input || !answer2Input) {
-    alert('الخانتين answer1 أو answer2 مش موجودين');
+  if (!answer1Input || !answer2Input || !btn) {
+    console.error('Puzzle form elements are missing');
     return;
   }
 
@@ -344,51 +231,46 @@ window.submitAnswers = async function () {
   const answer2 = answer2Input.value.trim();
 
   if (!answer1 || !answer2) {
-    msg.textContent = 'اكتب الإجابتين الأول';
+    showMsg('signupMsg', 'اكتب الإجابتين الأول', 'error');
     return;
   }
 
-  btn.disabled = true;
+  // يمنع انتظار طلب شبكة فاشل لو بيانات المشروع لسه Placeholder.
+  if (
+    SUPABASE_URL.includes('YOUR-PROJECT') ||
+    SUPABASE_ANON_KEY === 'YOUR-ANON-KEY'
+  ) {
+    showMsg('signupMsg', 'حط SUPABASE_URL و SUPABASE_ANON_KEY الحقيقيين الأول', 'error');
+    return;
+  }
+
   const oldText = btn.innerHTML;
-  btn.innerHTML = 'جاري التسجيل...';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> جاري التسجيل...';
 
   try {
-
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('puzzle_answers')
-      .insert([
-        {
-          answer_1: answer1,
-          answer_2: answer2
-        }
-      ]);
-
-    console.log('Supabase data:', data);
-    console.log('Supabase error:', error);
+      .insert({
+        answer_1: answer1,
+        answer_2: answer2
+      });
 
     if (error) {
-      msg.textContent = 'خطأ: ' + error.message;
-      console.error(error);
+      console.error('Supabase insert error:', error);
+      showMsg('signupMsg', 'فشل التسجيل: ' + error.message, 'error');
       return;
     }
 
-    msg.textContent = 'تم تسجيل الإجابتين ✅';
-
+    showMsg('signupMsg', 'تم تسجيل الإجابتين ✅', 'success');
     answer1Input.value = '';
     answer2Input.value = '';
-
   } catch (err) {
-
-    console.error('ERROR:', err);
-
-    msg.textContent =
-      'حصل خطأ: ' + (err.message || err);
-
+    console.error('Unexpected submit error:', err);
+    showMsg('signupMsg', 'حصل خطأ: ' + (err?.message || err), 'error');
   } finally {
-
     btn.disabled = false;
     btn.innerHTML = oldText;
-
   }
 };
 </script>
