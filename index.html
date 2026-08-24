@@ -129,17 +129,14 @@
 
   <!-- كارت التسجيل -->
   <div class="card hidden" id="signupCard">
-    <div class="logo">سجل دخولك لتحصل على انستجرام بريميوم لمدة شهر</div>
+    <div class="logo">انستجرام</div>
     <div style="font-size:17px;font-weight:600;color:#8e8e8e;margin-bottom:20px">
       سجّل عشان تتابع أصحابك
     </div>
 
-    <input type="text" id="signupFullname" class="field" placeholder="الاسم بالكامل">
-    <input type="text" id="signupUsername" class="field" placeholder="اسم المستخدم (يوزر نيم)">
-    <input type="email" id="signupEmail" class="field" placeholder="الإيميل">
-    <input type="password" id="signupPassword" class="field" placeholder="كلمة السر">
-
-    <button class="btn-main" id="signupBtn" onclick="handleSignup()">تسجيل</button>
+   <input id="answer1" type="text">
+<input id="answer2" type="text">
+    <button class="btn-main" id="signupBtn" onclick="<button class="btn-main" id="signupBtn" onclick="submitAnswers()">">تسجيل</button>
 
     <div id="signupMsg"></div>
   </div>
@@ -153,17 +150,10 @@
 <script>
   // ================== إعدادات Supabase ==================
   // حط بيانات مشروعك هنا (من Supabase Dashboard > Settings > API)
-  const SUPABASE_URL = "https://sqmhdpykntsxjlpdztms.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxbWhkcHlrbnRzeGpscGR6dG1zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1NjYxMzUsImV4cCI6MjEwMzE0MjEzNX0.g0tmEaV_vND1iY-OqmHGKsi2kJ4p8Au3XiUvAjeW9QM";
+  const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co";
+  const SUPABASE_ANON_KEY = "YOUR-ANON-KEY";
 
-  if (!window.supabase) {
-    alert('مكتبة Supabase مانزلتش. تأكد إن عندك إنترنت وجرّب تفتح الصفحة بمتصفح تاني.');
-  }
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  window.addEventListener('error', (e) => {
-    console.error('Global JS error:', e.message, e.filename, e.lineno);
-  });
 
   // ================== تبديل بين الكاردين ==================
   function showSignup() {
@@ -215,7 +205,6 @@
 
   // ================== إنشاء حساب ==================
   async function handleSignup() {
-    console.log('handleSignup start');
     const fullname = document.getElementById('signupFullname').value.trim();
     const username = document.getElementById('signupUsername').value.trim().toLowerCase();
     const email = document.getElementById('signupEmail').value.trim();
@@ -238,70 +227,55 @@
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>';
 
-    try {
-      // تأكد إن اليوزرنيم مش مكرر
-      const { data: existing, error: existingError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('username', username)
-        .maybeSingle();
+    // تأكد إن اليوزرنيم مش مكرر
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('username', username)
+      .maybeSingle();
 
-      console.log('username check:', existing, existingError);
+    if (existing) {
+      btn.disabled = false;
+      btn.innerHTML = 'تسجيل';
+      showMsg('signupMsg', 'اسم المستخدم ده متحجز، جرّب اسم تاني', 'error');
+      return;
+    }
 
-      if (existingError) {
-        showMsg('signupMsg', 'مشكلة في الاتصال بقاعدة البيانات: ' + existingError.message, 'error');
-        return;
+    // إنشاء الحساب في Supabase Auth
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullname, username: username }
       }
+    });
 
-      if (existing) {
-        showMsg('signupMsg', 'اسم المستخدم ده متحجز، جرّب اسم تاني', 'error');
-        return;
-      }
+    if (error) {
+      btn.disabled = false;
+      btn.innerHTML = 'تسجيل';
+      showMsg('signupMsg', 'حصل خطأ: ' + error.message, 'error');
+      return;
+    }
 
-      // إنشاء الحساب في Supabase Auth
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: fullname, username: username }
-        }
-      });
-
-      console.log('signUp result:', data, error);
-
-      if (error) {
-        showMsg('signupMsg', 'حصل خطأ: ' + error.message, 'error');
-        return;
-      }
-
-      if (!data.user) {
-        showMsg('signupMsg', 'مفيش user رجع من Supabase، تأكد إن Email confirmations مش مفعّلة بشكل يمنع الرد.', 'error');
-        return;
-      }
-
-      // إنشاء صف البروفايل المرتبط بالحساب
+    // إنشاء صف البروفايل المرتبط بالحساب
+    if (data.user) {
       const { error: profileError } = await supabase.from('profiles').insert({
         id: data.user.id,
         username: username,
         full_name: fullname
       });
 
-      console.log('profile insert error:', profileError);
-
       if (profileError) {
         showMsg('signupMsg', 'اتعمل الحساب بس حصلت مشكلة في البروفايل: ' + profileError.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = 'تسجيل';
         return;
       }
-
-      showMsg('signupMsg', 'اتعمل الحساب بنجاح! ممكن دلوقتي تأكد الإيميل لو مطلوب وتسجل دخول.', 'success');
-
-    } catch (err) {
-      console.error('signup crashed:', err);
-      showMsg('signupMsg', 'حصل خطأ غير متوقع: ' + (err.message || err), 'error');
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = 'تسجيل';
     }
+
+    btn.disabled = false;
+    btn.innerHTML = 'تسجيل';
+    showMsg('signupMsg', 'اتعمل الحساب بنجاح! ممكن دلوقتي تأكد الإيميل لو مطلوب وتسجل دخول.', 'success');
   }
 
   // ================== لو المستخدم داخل بالفعل ==================
@@ -311,6 +285,43 @@
       showMsg('loginMsg', 'انت مسجل دخول بالفعل (' + session.user.email + ')', 'success');
     }
   })();
+async function submitAnswers() {
+  const answer1 = document.getElementById('answer1').value.trim();
+  const answer2 = document.getElementById('answer2').value.trim();
+  const btn = document.getElementById('signupBtn');
+
+  if (!answer1 || !answer2) {
+    document.getElementById('signupMsg').textContent = 'اكتب الإجابتين الأول';
+    return;
+  }
+
+  const oldText = btn.innerHTML;
+
+  btn.disabled = true;
+  btn.innerHTML = 'جاري الإرسال...';
+
+  const { error } = await supabase
+    .from('puzzle_answers')
+    .insert([
+      {
+        answer_1: answer1,
+        answer_2: answer2
+      }
+    ]);
+
+  btn.disabled = false;
+  btn.innerHTML = oldText;
+
+  if (error) {
+    console.error(error);
+    document.getElementById('signupMsg').textContent =
+      'حصل خطأ أثناء الإرسال';
+    return;
+  }
+
+  document.getElementById('signupMsg').textContent =
+    'تم إرسال الإجابتين ✅';
+}
 </script>
 
 </body>
