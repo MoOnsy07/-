@@ -236,12 +236,12 @@ window.submitAnswers = async function () {
   btn.innerHTML = '<span class="spinner"></span> جاري التسجيل...';
 
   try {
-    const { error } = await supabase
-      .from('puzzle_answers')
-      .insert({
-        answer_1: answer1,
-        answer_2: answer2
-      });
+  const { error } = await supabaseClient
+  .from('puzzle_answers')
+  .insert({
+    answer_1: answer1,
+    answer_2: answer2
+  });
 
     if (error) {
       console.error('Supabase error:', error);
